@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>營運決策後台</title>
+    <style>
+        :root {
+            --primary-dark: #2c3e50;
+            --accent-blue: #3498db;
+            --bg-light: #f4f7f6;
+            --white: #ffffff;
+        }
+
+        body {
+            font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif;
+            background-color: var(--bg-light);
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+
+        .dashboard-container {
+            max-width: 1200px;
+            margin: auto;
+            background: var(--white);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+        }
+
+        h1 {
+            color: var(--primary-dark);
+            border-left: 6px solid var(--primary-dark);
+            padding-left: 15px;
+            margin: 0;
+        }
+
+        /* 品牌切換選單 */
+        .brand-selector {
+            background: #eee;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+        }
+
+        .brand-selector strong {
+            margin-right: 15px;
+        }
+
+        /* 導覽按鈕樣式 */
+        .btn-nav {
+            text-decoration: none;
+            padding: 10px 20px;
+            background: var(--white);
+            color: var(--primary-dark);
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-right: 10px;
+            transition: all 0.3s;
+        }
+
+        .btn-nav.active {
+            background: var(--primary-dark);
+            color: var(--white);
+            border-color: var(--primary-dark);
+        }
+
+        /* 功能分頁切換 */
+        .tabs {
+            margin-bottom: 20px;
+            border-bottom: 2px solid #eee;
+        }
+
+        .tab-btn {
+            padding: 12px 25px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-size: 16px;
+            color: #7f8c8d;
+            transition: 0.3s;
+        }
+
+        .tab-btn.active {
+            color: var(--accent-blue);
+            border-bottom: 3px solid var(--accent-blue);
+            font-weight: bold;
+        }
+
+        /* 內容區塊 */
+        .view-section {
+            display: none;
+            padding: 20px 0;
+        }
+
+        .view-section.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* 圖表樣式 */
+        .chart-wrapper {
+            text-align: center;
+            padding: 20px;
+            background: #fafafa;
+            border-radius: 10px;
+            border: 1px solid #efefef;
+        }
+
+        .chart-wrapper img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 5px;
+        }
+
+        /* 訂單明細巢狀表格 */
+        .main-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--white);
+        }
+
+        .main-table th {
+            background-color: var(--primary-dark);
+            color: var(--white);
+            padding: 15px;
+            text-align: left;
+        }
+
+        .main-table > tbody > tr > td {
+            padding: 20px 15px;
+            border-bottom: 2px solid #f0f0f0;
+            vertical-align: top;
+        }
+
+        /* 內部商品細項表格 */
+        .items-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.95em;
+            background-color: #fcfcfc;
+            border: 1px solid #eee;
+        }
+
+        .items-table th {
+            background-color: #f8f9fa;
+            color: #555;
+            padding: 8px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .items-table td {
+            padding: 10px 8px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .size-badge {
+            background-color: #e7f5ff;
+            color: #1971c2;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+
+        .brand-badge {
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 0.8em;
+            background: #333;
+            color: #fff;
+        }
+
+        .status-tag {
+            display: inline-block;
+            padding: 4px 10px;
+            background: #e9ecef;
+            border-radius: 20px;
+            font-size: 0.85em;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="dashboard-container">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:30px;">
+    <h1 style="margin:0; border-left:6px solid var(--primary-dark); padding-left:15px; color:var(--primary-dark);">
+        📈 決策控制台
+    </h1>
+    <a href="{{ url_for('logout') }}" class="btn-nav" 
+       style="background:#e74c3c; color:white; border-color:#e74c3c;">
+        🚪 登出
+    </a>
+    </div>
+    <div class="brand-selector">
+        <strong>🏷️ 目前篩選品牌：</strong>
+        <a href="?brand=ZARA" class="btn-nav {% if selected_brand == 'Zara' %}active{% endif %}">Zara 數據</a>
+        <a href="?brand=NET" class="btn-nav {% if selected_brand == 'NET' %}active{% endif %}">NET 數據</a>
+    </div>
+
+    <div class="tabs">
+        <button id="tab-sales" class="tab-btn active" onclick="toggleView('sales')">📦 商品需求排行</button>
+        <button id="tab-market" class="tab-btn" onclick="toggleView('market')">🌎 品牌市場佔比</button>
+        <button id="tab-orders" class="tab-btn" onclick="toggleView('orders')">📝 原始清單與細項</button>
+    </div>
+
+    <div id="view-sales" class="view-section active">
+        <div class="chart-wrapper">
+            <h3>{{ selected_brand }} 熱銷前十名 (採購依據)</h3>
+            <img src="data:image/png;base64,{{ bar_url }}" alt="Sales Chart">
+            <p style="color: #666; margin-top: 15px;">※ 提示：長條越高代表代購需求越旺盛，請優先確認該款庫存。</p>
+        </div>
+    </div>
+
+    <div id="view-market" class="view-section">
+        <div class="chart-wrapper">
+            <h3>全品牌代購量分佈 (營運依據)</h3>
+            <img src="data:image/png;base64,{{ pie_url }}" alt="Market Share Chart">
+            <p style="color: #666; margin-top: 15px;">※ 提示：藉此觀察各品牌佔比，決定代購宣傳重心。</p>
+        </div>
+    </div>
+
+    <div id="view-orders" class="view-section">
+        <h3>📝 訂單與採購細項一覽表</h3>
+        <table class="main-table">
+            <thead>
+                <tr>
+                    <th width="25%">訂單基本資訊 (zara_orders)</th>
+                    <th width="75%">詳細採購內容 (zara_order_items)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in orders %}
+                <tr>
+                    <td>
+                        <div style="font-size: 1.1em; font-weight: bold; color: var(--primary-dark);">
+                            訂單編號: {{ order.order_id }}
+                        </div>
+                        <div style="margin: 8px 0; color: #666; font-size: 0.9em;">
+                            系統編號: {{ order.order_number }}<br>
+                            下單日期: {{ order.order_date }}
+                        </div>
+                        <div class="status-tag">狀態: {{ order.order_status }}</div>
+                        <div style="margin-top: 10px; font-size: 0.85em; color: #999;">用戶 ID: {{ order.user_id }}</div>
+                    </td>
+
+                    <td>
+                        <table class="items-table">
+                            <thead>
+                                <tr>
+                                    <th>品牌</th>
+                                    <th>商品名稱</th>
+                                    <th>尺寸</th>
+                                    <th>數量</th>
+                                    <th>價格</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in order.order_items %}
+                                <tr>
+                                    <td><span class="brand-badge">{{ item.brand }}</span></td>
+                                    <td>{{ item.product_name }}</td>
+                                    <td><span class="size-badge">{{ item.size }}</span></td>
+                                    <td><strong>x{{ item.quantity }}</strong></td>
+                                    <td>${{ item.price }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    function toggleView(viewId) {
+        // 隱藏所有視圖
+        document.querySelectorAll('.view-section').forEach(section => {
+            section.classList.remove('active');
+        });
+        
+        // 移除所有標籤 active 狀態
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+
+        // 顯示被點選的視圖與標籤
+        document.getElementById('view-' + viewId).classList.add('active');
+        document.getElementById('tab-' + viewId).classList.add('active');
+    }
+</script>
+
+</body>
+</html>

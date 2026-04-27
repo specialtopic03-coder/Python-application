@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <title>我的訂單</title>
+    <style>
+        body { font-family: 'Segoe UI', Arial, sans-serif; max-width: 900px; margin: 50px auto; background: #f4f7f6; }
+        .order-card { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+        h1 { border-bottom: 2px solid #eee; padding-bottom: 10px; }
+        ul { list-style: none; padding: 0; }
+        
+        /* 商品列樣式 */
+        .item-row { 
+            display: flex; align-items: center; 
+            padding: 15px; border-bottom: 1px solid #eee; 
+            gap: 20px;
+        }
+        .item-row img { width: 80px; height: 110px; object-fit: cover; border-radius: 8px; background: #eee; }
+        .item-info { flex: 1; }
+        .item-name { font-weight: bold; font-size: 1.1em; color: #333; }
+        .item-price { color: #e31e24; font-weight: bold; margin-top: 5px; }
+        
+        .total-section { text-align: right; margin-top: 30px; padding: 20px; }
+        .total-price { font-size: 2em; color: #e31e24; font-weight: 900; }
+        .btn-group { display: flex; gap: 10px; justify-content: flex-end; }
+        .btn { padding: 12px 25px; border-radius: 30px; text-decoration: none; font-weight: bold; }
+        .btn-back { background: #6c757d; color: white; }
+        .btn-checkout { background: #28a745; color: white; }
+    </style>
+</head>
+<body>
+    <div class="order-card">
+        <h1>🛒 我的訂單 ({{ count }} 項)</h1>
+        <ul>
+            {% for item in order %}
+            <li class="item-row">
+                <img src="{{ item.圖片 }}">
+                <div class="item-info">
+                    <div class="item-name">{{ item.名稱 }}</div>
+                    <div style="margin: 5px 0; font-size: 0.9em; color: #666;">
+                        規格：<span style="background: #ddd; padding: 2px 6px; border-radius: 4px;">{{ item.size }}</span> 
+                        數量：<span style="background: #ddd; padding: 2px 6px; border-radius: 4px;">{{ item.qty }}</span>
+                    </div>
+                    <div class="item-price">{{ item.價格 }}</div>
+                </div>
+                <form action="/zara_remove" method="POST">
+                    <input type="hidden" name="name" value="{{ item.名稱 }}">
+                    <button type="submit" style="color: #999; border: none; background: none; cursor: pointer;">移除</button>
+                </form>
+            </li>
+            {% endfor %}
+        </ul>
+
+        <div class="total-section">
+            <p>總計金額</p>
+            <div class="total-price">NT$ {{ "{:,}".format(total) }}</div>
+            <div class="btn-group">
+                <a href="/zara_shop" class="btn btn-back">繼續購物</a>
+                <form action="/zara_shop/checkout" method="POST" style="display: inline;">
+                    <button type="submit" class="btn btn-checkout" style="border:none; cursor:pointer;">
+                        確認結帳並送出
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
